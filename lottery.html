@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>双色球选号</title>
+    <title>发财了</title>
     <style>
         * {
             margin: 0;
@@ -241,16 +241,47 @@
             transform: scale(1.1);
             box-shadow: 0 0 15px rgba(39, 174, 96, 0.8);
         }
+        
+        /* 六合彩球样式 */
+        .lhc-ball {
+            background-color: #f39c12;
+            color: white;
+        }
+        
+        .lhc-ball:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(243, 156, 18, 0.5);
+        }
+        
+        .lhc-ball.selected {
+            background-color: #e67e22;
+            border-color: #d35400;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(243, 156, 18, 0.8);
+        }
+        
+        /* 六合彩小码样式 */
+        .lhc-small {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        /* 六合彩特码样式 */
+        .lhc-special {
+            background-color: #9b59b6;
+            color: white;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎯 彩票选号器</h1>
+        <h1>🎯 一次就中</h1>
         
         <!-- 选项卡 -->
         <div class="tabs">
             <button class="tab-btn active" data-type="ssq">🔴 双色球</button>
             <button class="tab-btn" data-type="dlt">🟢 大乐透</button>
+            <button class="tab-btn" data-type="lhc">🔊 六合彩</button>
         </div>
         
         <!-- 双色球选号区 -->
@@ -303,6 +334,42 @@
             </div>
         </div>
         
+        <!-- 六合彩选号区 -->
+        <div class="game-panel" id="lhcPanel" style="display: none;">
+            <!-- 平码选择 -->
+            <div class="lottery-section">
+                <h2>🔊 平码 (1-49，选择6个)</h2>
+                <div class="tip">已选择: <span id="lhcNormalCount">0</span>/6</div>
+                <div class="balls-container" id="lhcNormalBalls"></div>
+            </div>
+            
+            <!-- 特码选择 -->
+            <div class="lottery-section">
+                <h2>🌟 特码 (1-49，选择1个)</h2>
+                <div class="tip">已选择: <span id="lhcSpecialCount">0</span>/1</div>
+                <div class="balls-container" id="lhcSpecialBalls"></div>
+            </div>
+            
+            <!-- 已选号码 -->
+            <div class="selected-numbers">
+                <h3>🎫 已选六合彩号码</h3>
+                <div class="selected-balls" id="lhcSelectedBalls">
+                    <span style="color: #999;">请选择号码</span>
+                </div>
+            </div>
+            
+            <!-- 结果显示区域 -->
+            <div class="result-display" style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: none;">
+                <h3 style="color: #e74c3c; margin-bottom: 10px;">🎯 机选结果</h3>
+                <div id="lhcResultText"></div>
+            </div>
+            
+            <!-- 六合彩特殊玩法控制 -->
+            <div class="controls" style="margin-top: 20px;">
+                <button class="btn btn-primary" id="lhcThreeAllBtn">🎲 机选三全中</button>
+            </div>
+        </div>
+        
         <!-- 控制按钮 -->
         <div class="controls">
             <button class="btn btn-primary" id="randomBtn">🎲 机选一组</button>
@@ -332,12 +399,23 @@
                     <li>祝您好运！🎉</li>
                 </ul>
             </div>
+            <div id="lhcInfo" style="display: none;">
+                <strong>六合彩玩法说明：</strong>
+                <ul style="margin-top: 10px; margin-left: 20px;">
+                    <li>平码：从1-49个号码中选择6个号码</li>
+                    <li>特码：从1-49个号码中选择1个号码</li>
+                    <li>总玩法：6个平码 + 1个特码</li>
+                    <li>点击号码进行选择/取消</li>
+                    <li>使用快速机选功能快速生成一组号码</li>
+                    <li>祝您好运！🎉</li>
+                </ul>
+            </div>
         </div>
     </div>
     
     <script>
         // 全局变量
-        let currentGameType = 'ssq'; // 当前游戏类型：ssq(双色球) 或 dlt(大乐透)
+        let currentGameType = 'ssq'; // 当前游戏类型：ssq(双色球)、dlt(大乐透) 或 lhc(六合彩)
         
         // 双色球数据
         let ssqSelectedRed = [];
@@ -347,18 +425,27 @@
         let dltSelectedFront = [];
         let dltSelectedBack = [];
         
+        // 六合彩数据
+        let lhcSelectedNormal = []; // 平码（6个）
+        let lhcSelectedSpecial = null; // 特码（1个）
+        
         // DOM元素
         // 选项卡
         const tabBtns = document.querySelectorAll('.tab-btn');
         const ssqPanel = document.getElementById('ssqPanel');
         const dltPanel = document.getElementById('dltPanel');
+        const lhcPanel = document.getElementById('lhcPanel');
         const ssqInfo = document.getElementById('ssqInfo');
         const dltInfo = document.getElementById('dltInfo');
+        const lhcInfo = document.getElementById('lhcInfo');
         
         // 控制按钮
         const randomBtn = document.getElementById('randomBtn');
         const clearBtn = document.getElementById('clearBtn');
         const clearAllBtn = document.getElementById('clearAllBtn');
+        
+        // 六合彩特殊玩法按钮
+        const lhcThreeAllBtn = document.getElementById('lhcThreeAllBtn');
         
         // 双色球DOM
         const ssqRedBalls = document.getElementById('ssqRedBalls');
@@ -373,6 +460,15 @@
         const dltSelectedBalls = document.getElementById('dltSelectedBalls');
         const dltFrontCount = document.getElementById('dltFrontCount');
         const dltBackCount = document.getElementById('dltBackCount');
+        
+        // 六合彩DOM
+        const lhcNormalBalls = document.getElementById('lhcNormalBalls');
+        const lhcSpecialBalls = document.getElementById('lhcSpecialBalls');
+        const lhcSelectedBalls = document.getElementById('lhcSelectedBalls');
+        const lhcNormalCount = document.getElementById('lhcNormalCount');
+        const lhcSpecialCount = document.getElementById('lhcSpecialCount');
+        const lhcResultDisplay = document.querySelector('.result-display');
+        const lhcResultText = document.getElementById('lhcResultText');
         
         // 初始化双色球红球
         function initSsqRedBalls() {
@@ -422,6 +518,30 @@
             }
         }
         
+        // 初始化六合彩平码号码球
+        function initLhcNormalBalls() {
+            for (let i = 1; i <= 49; i++) {
+                const ball = document.createElement('div');
+                ball.className = 'ball lhc-ball';
+                ball.textContent = i;
+                ball.dataset.number = i;
+                ball.onclick = () => toggleLhcNormal(i);
+                lhcNormalBalls.appendChild(ball);
+            }
+        }
+        
+        // 初始化六合彩特码号码球
+        function initLhcSpecialBalls() {
+            for (let i = 1; i <= 49; i++) {
+                const ball = document.createElement('div');
+                ball.className = 'ball lhc-ball';
+                ball.textContent = i;
+                ball.dataset.number = i;
+                ball.onclick = () => toggleLhcSpecial(i);
+                lhcSpecialBalls.appendChild(ball);
+            }
+        }
+        
         // 切换游戏类型
         function switchGameType(type) {
             currentGameType = type;
@@ -436,14 +556,157 @@
             if (type === 'ssq') {
                 ssqPanel.style.display = 'block';
                 dltPanel.style.display = 'none';
+                lhcPanel.style.display = 'none';
                 ssqInfo.style.display = 'block';
                 dltInfo.style.display = 'none';
-            } else {
+                lhcInfo.style.display = 'none';
+            } else if (type === 'dlt') {
                 ssqPanel.style.display = 'none';
                 dltPanel.style.display = 'block';
+                lhcPanel.style.display = 'none';
                 ssqInfo.style.display = 'none';
                 dltInfo.style.display = 'block';
+                lhcInfo.style.display = 'none';
+            } else {
+                ssqPanel.style.display = 'none';
+                dltPanel.style.display = 'none';
+                lhcPanel.style.display = 'block';
+                ssqInfo.style.display = 'none';
+                dltInfo.style.display = 'none';
+                lhcInfo.style.display = 'block';
             }
+        }
+        
+        // 六合彩平码选择
+        function toggleLhcNormal(number) {
+            const ball = document.querySelector(`#lhcNormalBalls .lhc-ball[data-number="${number}"]`);
+            
+            if (lhcSelectedNormal.includes(number)) {
+                // 取消选择
+                lhcSelectedNormal = lhcSelectedNormal.filter(n => n !== number);
+                ball.classList.remove('selected');
+            } else {
+                // 选择平码，最多6个
+                if (lhcSelectedNormal.length < 6) {
+                    lhcSelectedNormal.push(number);
+                    lhcSelectedNormal.sort((a, b) => a - b);
+                    ball.classList.add('selected');
+                }
+            }
+            
+            updateLhcDisplay();
+        }
+        
+        // 六合彩特码选择
+        function toggleLhcSpecial(number) {
+            // 取消之前选择的特码
+            if (lhcSelectedSpecial !== null) {
+                const prevBall = document.querySelector(`#lhcSpecialBalls .lhc-ball[data-number="${lhcSelectedSpecial}"]`);
+                prevBall.classList.remove('selected');
+            }
+            
+            // 选择新的特码
+            lhcSelectedSpecial = number;
+            const ball = document.querySelector(`#lhcSpecialBalls .lhc-ball[data-number="${number}"]`);
+            ball.classList.add('selected');
+            
+            updateLhcDisplay();
+        }
+        
+        // 更新六合彩显示
+        function updateLhcDisplay() {
+            // 更新计数
+            lhcNormalCount.textContent = lhcSelectedNormal.length;
+            lhcSpecialCount.textContent = lhcSelectedSpecial ? 1 : 0;
+            
+            // 更新已选号码
+            lhcSelectedBalls.innerHTML = '';
+            
+            if (lhcSelectedNormal.length === 0 && lhcSelectedSpecial === null) {
+                lhcSelectedBalls.innerHTML = '<span style="color: #999;">请选择号码</span>';
+                return;
+            }
+            
+            // 添加平码
+            lhcSelectedNormal.forEach(number => {
+                const ball = document.createElement('div');
+                ball.className = 'ball lhc-ball selected';
+                ball.textContent = number;
+                lhcSelectedBalls.appendChild(ball);
+            });
+            
+            // 添加分隔符
+            if (lhcSelectedNormal.length > 0 && lhcSelectedSpecial !== null) {
+                const separator = document.createElement('span');
+                separator.className = 'separator';
+                separator.textContent = '+';
+                lhcSelectedBalls.appendChild(separator);
+            }
+            
+            // 添加特码
+            if (lhcSelectedSpecial !== null) {
+                const ball = document.createElement('div');
+                ball.className = 'ball lhc-ball lhc-special selected';
+                ball.textContent = lhcSelectedSpecial;
+                lhcSelectedBalls.appendChild(ball);
+            }
+        }
+        
+        // 六合彩机选一组（6+1）
+        function randomLhc() {
+            // 清空之前的选择
+            clearLhcSelection();
+            
+            // 随机选择6个平码
+            const allNumbers = Array.from({length: 49}, (_, i) => i + 1);
+            for (let i = 0; i < 6; i++) {
+                const randomIndex = Math.floor(Math.random() * allNumbers.length);
+                const selectedNumber = allNumbers.splice(randomIndex, 1)[0];
+                toggleLhcNormal(selectedNumber);
+            }
+            
+            // 随机选择1个特码
+            const specialNumber = Math.floor(Math.random() * 49) + 1;
+            toggleLhcSpecial(specialNumber);
+            
+            // 显示结果
+            showLhcResult();
+        }
+        
+        // 显示六合彩机选结果
+        function showLhcResult() {
+            lhcResultDisplay.style.display = 'block';
+            
+            let resultText = '<div style="font-size: 16px; line-height: 1.8;">';
+            resultText += '<strong>已选号码：</strong>';
+            lhcSelectedNormal.forEach(number => {
+                resultText += `<span style="display: inline-block; width: 30px; height: 30px; line-height: 30px; background-color: #f39c12; color: white; border-radius: 50%; text-align: center; margin: 0 5px 5px 0; font-weight: bold;">${number}</span>`;
+            });
+            
+            if (lhcSelectedSpecial !== null) {
+                resultText += '<br><strong>特码：</strong>';
+                resultText += `<span style="display: inline-block; width: 30px; height: 30px; line-height: 30px; background-color: #9b59b6; color: white; border-radius: 50%; text-align: center; margin: 5px; font-weight: bold;">${lhcSelectedSpecial}</span>`;
+            }
+            resultText += '</div>';
+            
+            lhcResultText.innerHTML = resultText;
+        }
+        
+        // 六合彩机选三全中（挑选3个数）
+        function randomLhcThreeAll() {
+            // 清空之前的选择
+            clearLhcSelection();
+            
+            // 随机选择3个号码作为平码
+            const allNumbers = Array.from({length: 49}, (_, i) => i + 1);
+            for (let i = 0; i < 3; i++) {
+                const randomIndex = Math.floor(Math.random() * allNumbers.length);
+                const selectedNumber = allNumbers.splice(randomIndex, 1)[0];
+                toggleLhcNormal(selectedNumber);
+            }
+            
+            // 显示结果
+            showLhcResult();
         }
         
         // 双色球红球选择
@@ -645,8 +908,10 @@
         function randomSelect() {
             if (currentGameType === 'ssq') {
                 randomSsq();
-            } else {
+            } else if (currentGameType === 'dlt') {
                 randomDlt();
+            } else {
+                randomLhc();
             }
         }
         
@@ -667,6 +932,28 @@
             }
             
             updateSsqDisplay();
+        }
+        
+        // 清除六合彩选择
+        function clearLhcSelection() {
+            // 清除平码
+            lhcSelectedNormal.forEach(number => {
+                const ball = document.querySelector(`#lhcNormalBalls .lhc-ball[data-number="${number}"]`);
+                ball.classList.remove('selected');
+            });
+            lhcSelectedNormal = [];
+            
+            // 清除特码
+            if (lhcSelectedSpecial !== null) {
+                const ball = document.querySelector(`#lhcSpecialBalls .lhc-ball[data-number="${lhcSelectedSpecial}"]`);
+                ball.classList.remove('selected');
+                lhcSelectedSpecial = null;
+            }
+            
+            // 隐藏结果显示
+            lhcResultDisplay.style.display = 'none';
+            
+            updateLhcDisplay();
         }
         
         // 清除大乐透选择
@@ -692,8 +979,10 @@
         function clearSelection() {
             if (currentGameType === 'ssq') {
                 clearSsqSelection();
-            } else {
+            } else if (currentGameType === 'dlt') {
                 clearDltSelection();
+            } else {
+                clearLhcSelection();
             }
         }
         
@@ -709,6 +998,8 @@
             initSsqBlueBalls();
             initDltFrontBalls();
             initDltBackBalls();
+            initLhcNormalBalls();
+            initLhcSpecialBalls();
             
             // 绑定事件
             // 选项卡切换
@@ -722,6 +1013,9 @@
             randomBtn.addEventListener('click', randomSelect);
             clearBtn.addEventListener('click', clearSelection);
             clearAllBtn.addEventListener('click', clearAll);
+            
+            // 六合彩机选三全中按钮
+            lhcThreeAllBtn.addEventListener('click', randomLhcThreeAll);
         }
         
         // 页面加载完成后初始化
