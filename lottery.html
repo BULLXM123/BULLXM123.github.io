@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>双色球选号</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #e74c3c;
+            margin-bottom: 30px;
+            font-size: 32px;
+        }
+        
+        .lottery-section {
+            margin-bottom: 30px;
+        }
+        
+        h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        
+        .balls-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .ball {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .red-ball {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .red-ball:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+        }
+        
+        .red-ball.selected {
+            background-color: #c0392b;
+            border-color: #96281b;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(231, 76, 60, 0.8);
+        }
+        
+        .blue-ball {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .blue-ball:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+        
+        .blue-ball.selected {
+            background-color: #2980b9;
+            border-color: #1f618d;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(52, 152, 219, 0.8);
+        }
+        
+        .selected-numbers {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .selected-numbers h3 {
+            color: #666;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .selected-balls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .selected-balls .ball {
+            cursor: default;
+        }
+        
+        .selected-balls .separator {
+            font-size: 24px;
+            color: #999;
+            margin: 0 5px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background-color: #27ae60;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #229954;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+        }
+        
+        .info {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 5px solid #2196f3;
+            color: #1565c0;
+            margin-top: 20px;
+        }
+        
+        .tip {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        /* 选项卡样式 */
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .tab-btn {
+            padding: 12px 24px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            background-color: transparent;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab-btn:hover {
+            color: #333;
+        }
+        
+        .tab-btn.active {
+            color: #e74c3c;
+            border-bottom-color: #e74c3c;
+            background-color: #fef0ef;
+        }
+        
+        /* 游戏面板样式 */
+        .game-panel {
+            margin-bottom: 20px;
+        }
+        
+        /* 大乐透前区球样式 */
+        .front-ball {
+            background-color: #27ae60;
+            color: white;
+        }
+        
+        .front-ball:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(39, 174, 96, 0.5);
+        }
+        
+        .front-ball.selected {
+            background-color: #229954;
+            border-color: #1e8449;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(39, 174, 96, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 彩票选号器</h1>
+        
+        <!-- 选项卡 -->
+        <div class="tabs">
+            <button class="tab-btn active" data-type="ssq">🔴 双色球</button>
+            <button class="tab-btn" data-type="dlt">🟢 大乐透</button>
+        </div>
+        
+        <!-- 双色球选号区 -->
+        <div class="game-panel" id="ssqPanel">
+            <!-- 红色球选择 -->
+            <div class="lottery-section">
+                <h2>🔴 红色球 (1-33，选择6个)</h2>
+                <div class="tip">已选择: <span id="ssqRedCount">0</span>/6</div>
+                <div class="balls-container" id="ssqRedBalls"></div>
+            </div>
+            
+            <!-- 蓝色球选择 -->
+            <div class="lottery-section">
+                <h2>🔵 蓝色球 (1-16，选择1个)</h2>
+                <div class="tip">已选择: <span id="ssqBlueCount">0</span>/1</div>
+                <div class="balls-container" id="ssqBlueBalls"></div>
+            </div>
+            
+            <!-- 已选号码 -->
+            <div class="selected-numbers">
+                <h3>🎫 已选双色球号码</h3>
+                <div class="selected-balls" id="ssqSelectedBalls">
+                    <span style="color: #999;">请选择号码</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 大乐透选号区 -->
+        <div class="game-panel" id="dltPanel" style="display: none;">
+            <!-- 前区选择 -->
+            <div class="lottery-section">
+                <h2>🟢 前区 (1-35，选择5个)</h2>
+                <div class="tip">已选择: <span id="dltFrontCount">0</span>/5</div>
+                <div class="balls-container" id="dltFrontBalls"></div>
+            </div>
+            
+            <!-- 后区选择 -->
+            <div class="lottery-section">
+                <h2>🔵 后区 (1-12，选择2个)</h2>
+                <div class="tip">已选择: <span id="dltBackCount">0</span>/2</div>
+                <div class="balls-container" id="dltBackBalls"></div>
+            </div>
+            
+            <!-- 已选号码 -->
+            <div class="selected-numbers">
+                <h3>🎫 已选大乐透号码</h3>
+                <div class="selected-balls" id="dltSelectedBalls">
+                    <span style="color: #999;">请选择号码</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 控制按钮 -->
+        <div class="controls">
+            <button class="btn btn-primary" id="randomBtn">🎲 机选一组</button>
+            <button class="btn btn-secondary" id="clearBtn">🗑️ 清除当前</button>
+            <button class="btn btn-danger" id="clearAllBtn">🧹 清空所有</button>
+        </div>
+        
+        <!-- 提示信息 -->
+        <div class="info">
+            <div id="ssqInfo">
+                <strong>双色球玩法说明：</strong>
+                <ul style="margin-top: 10px; margin-left: 20px;">
+                    <li>从红色球中选择6个号码 (1-33)</li>
+                    <li>从蓝色球中选择1个号码 (1-16)</li>
+                    <li>点击号码进行选择/取消</li>
+                    <li>使用机选功能快速生成号码</li>
+                    <li>祝您好运！🎉</li>
+                </ul>
+            </div>
+            <div id="dltInfo" style="display: none;">
+                <strong>大乐透玩法说明：</strong>
+                <ul style="margin-top: 10px; margin-left: 20px;">
+                    <li>从前区中选择5个号码 (1-35)</li>
+                    <li>从后区中选择2个号码 (1-12)</li>
+                    <li>点击号码进行选择/取消</li>
+                    <li>使用机选功能快速生成号码</li>
+                    <li>祝您好运！🎉</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 全局变量
+        let currentGameType = 'ssq'; // 当前游戏类型：ssq(双色球) 或 dlt(大乐透)
+        
+        // 双色球数据
+        let ssqSelectedRed = [];
+        let ssqSelectedBlue = null;
+        
+        // 大乐透数据
+        let dltSelectedFront = [];
+        let dltSelectedBack = [];
+        
+        // DOM元素
+        // 选项卡
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const ssqPanel = document.getElementById('ssqPanel');
+        const dltPanel = document.getElementById('dltPanel');
+        const ssqInfo = document.getElementById('ssqInfo');
+        const dltInfo = document.getElementById('dltInfo');
+        
+        // 控制按钮
+        const randomBtn = document.getElementById('randomBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const clearAllBtn = document.getElementById('clearAllBtn');
+        
+        // 双色球DOM
+        const ssqRedBalls = document.getElementById('ssqRedBalls');
+        const ssqBlueBalls = document.getElementById('ssqBlueBalls');
+        const ssqSelectedBalls = document.getElementById('ssqSelectedBalls');
+        const ssqRedCount = document.getElementById('ssqRedCount');
+        const ssqBlueCount = document.getElementById('ssqBlueCount');
+        
+        // 大乐透DOM
+        const dltFrontBalls = document.getElementById('dltFrontBalls');
+        const dltBackBalls = document.getElementById('dltBackBalls');
+        const dltSelectedBalls = document.getElementById('dltSelectedBalls');
+        const dltFrontCount = document.getElementById('dltFrontCount');
+        const dltBackCount = document.getElementById('dltBackCount');
+        
+        // 初始化双色球红球
+        function initSsqRedBalls() {
+            for (let i = 1; i <= 33; i++) {
+                const ball = document.createElement('div');
+                ball.className = 'ball red-ball';
+                ball.textContent = i;
+                ball.dataset.number = i;
+                ball.onclick = () => toggleSsqRed(i);
+                ssqRedBalls.appendChild(ball);
+            }
+        }
+        
+        // 初始化双色球蓝球
+        function initSsqBlueBalls() {
+            for (let i = 1; i <= 16; i++) {
+                const ball = document.createElement('div');
+                ball.className = 'ball blue-ball';
+                ball.textContent = i;
+                ball.dataset.number = i;
+                ball.onclick = () => toggleSsqBlue(i);
+                ssqBlueBalls.appendChild(ball);
+            }
+        }
+        
+        // 初始化大乐透前区球
+        function initDltFrontBalls() {
+            for (let i = 1; i <= 35; i++) {
+                const ball = document.createElement('div');
+                ball.className = 'ball front-ball';
+                ball.textContent = i;
+                ball.dataset.number = i;
+                ball.onclick = () => toggleDltFront(i);
+                dltFrontBalls.appendChild(ball);
+            }
+        }
+        
+        // 初始化大乐透后区球
+        function initDltBackBalls() {
+            for (let i = 1; i <= 12; i++) {
+                const ball = document.createElement('div');
+                ball.className = 'ball blue-ball';
+                ball.textContent = i;
+                ball.dataset.number = i;
+                ball.onclick = () => toggleDltBack(i);
+                dltBackBalls.appendChild(ball);
+            }
+        }
+        
+        // 切换游戏类型
+        function switchGameType(type) {
+            currentGameType = type;
+            
+            // 更新选项卡样式
+            tabBtns.forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-type="${type}"]`).classList.add('active');
+            
+            // 显示/隐藏游戏面板
+            if (type === 'ssq') {
+                ssqPanel.style.display = 'block';
+                dltPanel.style.display = 'none';
+                ssqInfo.style.display = 'block';
+                dltInfo.style.display = 'none';
+            } else {
+                ssqPanel.style.display = 'none';
+                dltPanel.style.display = 'block';
+                ssqInfo.style.display = 'none';
+                dltInfo.style.display = 'block';
+            }
+        }
+        
+        // 双色球红球选择
+        function toggleSsqRed(number) {
+            const ball = document.querySelector(`#ssqRedBalls .red-ball[data-number="${number}"]`);
+            
+            if (ssqSelectedRed.includes(number)) {
+                // 取消选择
+                ssqSelectedRed = ssqSelectedRed.filter(n => n !== number);
+                ball.classList.remove('selected');
+            } else {
+                // 选择红球，最多6个
+                if (ssqSelectedRed.length < 6) {
+                    ssqSelectedRed.push(number);
+                    ssqSelectedRed.sort((a, b) => a - b);
+                    ball.classList.add('selected');
+                }
+            }
+            
+            updateSsqDisplay();
+        }
+        
+        // 双色球蓝球选择
+        function toggleSsqBlue(number) {
+            const ball = document.querySelector(`#ssqBlueBalls .blue-ball[data-number="${number}"]`);
+            
+            // 取消之前选择的蓝球
+            if (ssqSelectedBlue !== null) {
+                const prevBall = document.querySelector(`#ssqBlueBalls .blue-ball[data-number="${ssqSelectedBlue}"]`);
+                prevBall.classList.remove('selected');
+            }
+            
+            // 选择新的蓝球
+            ssqSelectedBlue = number;
+            ball.classList.add('selected');
+            
+            updateSsqDisplay();
+        }
+        
+        // 更新双色球显示
+        function updateSsqDisplay() {
+            // 更新计数
+            ssqRedCount.textContent = ssqSelectedRed.length;
+            ssqBlueCount.textContent = ssqSelectedBlue ? 1 : 0;
+            
+            // 更新已选号码
+            ssqSelectedBalls.innerHTML = '';
+            
+            if (ssqSelectedRed.length === 0 && !ssqSelectedBlue) {
+                ssqSelectedBalls.innerHTML = '<span style="color: #999;">请选择号码</span>';
+                return;
+            }
+            
+            // 添加红球
+            ssqSelectedRed.forEach(number => {
+                const ball = document.createElement('div');
+                ball.className = 'ball red-ball selected';
+                ball.textContent = number;
+                ssqSelectedBalls.appendChild(ball);
+            });
+            
+            // 添加分隔符
+            if (ssqSelectedRed.length > 0 && ssqSelectedBlue) {
+                const separator = document.createElement('span');
+                separator.className = 'separator';
+                separator.textContent = '+';
+                ssqSelectedBalls.appendChild(separator);
+            }
+            
+            // 添加蓝球
+            if (ssqSelectedBlue) {
+                const ball = document.createElement('div');
+                ball.className = 'ball blue-ball selected';
+                ball.textContent = ssqSelectedBlue;
+                ssqSelectedBalls.appendChild(ball);
+            }
+        }
+        
+        // 大乐透前区选择
+        function toggleDltFront(number) {
+            const ball = document.querySelector(`#dltFrontBalls .front-ball[data-number="${number}"]`);
+            
+            if (dltSelectedFront.includes(number)) {
+                // 取消选择
+                dltSelectedFront = dltSelectedFront.filter(n => n !== number);
+                ball.classList.remove('selected');
+            } else {
+                // 选择前区，最多5个
+                if (dltSelectedFront.length < 5) {
+                    dltSelectedFront.push(number);
+                    dltSelectedFront.sort((a, b) => a - b);
+                    ball.classList.add('selected');
+                }
+            }
+            
+            updateDltDisplay();
+        }
+        
+        // 大乐透后区选择
+        function toggleDltBack(number) {
+            const ball = document.querySelector(`#dltBackBalls .blue-ball[data-number="${number}"]`);
+            
+            if (dltSelectedBack.includes(number)) {
+                // 取消选择
+                dltSelectedBack = dltSelectedBack.filter(n => n !== number);
+                ball.classList.remove('selected');
+            } else {
+                // 选择后区，最多2个
+                if (dltSelectedBack.length < 2) {
+                    dltSelectedBack.push(number);
+                    dltSelectedBack.sort((a, b) => a - b);
+                    ball.classList.add('selected');
+                }
+            }
+            
+            updateDltDisplay();
+        }
+        
+        // 更新大乐透显示
+        function updateDltDisplay() {
+            // 更新计数
+            dltFrontCount.textContent = dltSelectedFront.length;
+            dltBackCount.textContent = dltSelectedBack.length;
+            
+            // 更新已选号码
+            dltSelectedBalls.innerHTML = '';
+            
+            if (dltSelectedFront.length === 0 && dltSelectedBack.length === 0) {
+                dltSelectedBalls.innerHTML = '<span style="color: #999;">请选择号码</span>';
+                return;
+            }
+            
+            // 添加前区
+            dltSelectedFront.forEach(number => {
+                const ball = document.createElement('div');
+                ball.className = 'ball front-ball selected';
+                ball.textContent = number;
+                dltSelectedBalls.appendChild(ball);
+            });
+            
+            // 添加分隔符
+            if (dltSelectedFront.length > 0 && dltSelectedBack.length > 0) {
+                const separator = document.createElement('span');
+                separator.className = 'separator';
+                separator.textContent = '+';
+                dltSelectedBalls.appendChild(separator);
+            }
+            
+            // 添加后区
+            dltSelectedBack.forEach(number => {
+                const ball = document.createElement('div');
+                ball.className = 'ball blue-ball selected';
+                ball.textContent = number;
+                dltSelectedBalls.appendChild(ball);
+            });
+        }
+        
+        // 双色球机选
+        function randomSsq() {
+            // 清空之前的选择
+            clearSsqSelection();
+            
+            // 随机选择6个红球
+            const allRed = Array.from({length: 33}, (_, i) => i + 1);
+            for (let i = 0; i < 6; i++) {
+                const randomIndex = Math.floor(Math.random() * allRed.length);
+                const selectedNumber = allRed.splice(randomIndex, 1)[0];
+                toggleSsqRed(selectedNumber);
+            }
+            
+            // 随机选择1个蓝球
+            const randomBlue = Math.floor(Math.random() * 16) + 1;
+            toggleSsqBlue(randomBlue);
+        }
+        
+        // 大乐透机选
+        function randomDlt() {
+            // 清空之前的选择
+            clearDltSelection();
+            
+            // 随机选择5个前区
+            const allFront = Array.from({length: 35}, (_, i) => i + 1);
+            for (let i = 0; i < 5; i++) {
+                const randomIndex = Math.floor(Math.random() * allFront.length);
+                const selectedNumber = allFront.splice(randomIndex, 1)[0];
+                toggleDltFront(selectedNumber);
+            }
+            
+            // 随机选择2个后区
+            const allBack = Array.from({length: 12}, (_, i) => i + 1);
+            for (let i = 0; i < 2; i++) {
+                const randomIndex = Math.floor(Math.random() * allBack.length);
+                const selectedNumber = allBack.splice(randomIndex, 1)[0];
+                toggleDltBack(selectedNumber);
+            }
+        }
+        
+        // 机选一组
+        function randomSelect() {
+            if (currentGameType === 'ssq') {
+                randomSsq();
+            } else {
+                randomDlt();
+            }
+        }
+        
+        // 清除双色球选择
+        function clearSsqSelection() {
+            // 清除红球
+            ssqSelectedRed.forEach(number => {
+                const ball = document.querySelector(`#ssqRedBalls .red-ball[data-number="${number}"]`);
+                ball.classList.remove('selected');
+            });
+            ssqSelectedRed = [];
+            
+            // 清除蓝球
+            if (ssqSelectedBlue !== null) {
+                const ball = document.querySelector(`#ssqBlueBalls .blue-ball[data-number="${ssqSelectedBlue}"]`);
+                ball.classList.remove('selected');
+                ssqSelectedBlue = null;
+            }
+            
+            updateSsqDisplay();
+        }
+        
+        // 清除大乐透选择
+        function clearDltSelection() {
+            // 清除前区
+            dltSelectedFront.forEach(number => {
+                const ball = document.querySelector(`#dltFrontBalls .front-ball[data-number="${number}"]`);
+                ball.classList.remove('selected');
+            });
+            dltSelectedFront = [];
+            
+            // 清除后区
+            dltSelectedBack.forEach(number => {
+                const ball = document.querySelector(`#dltBackBalls .blue-ball[data-number="${number}"]`);
+                ball.classList.remove('selected');
+            });
+            dltSelectedBack = [];
+            
+            updateDltDisplay();
+        }
+        
+        // 清除当前游戏选择
+        function clearSelection() {
+            if (currentGameType === 'ssq') {
+                clearSsqSelection();
+            } else {
+                clearDltSelection();
+            }
+        }
+        
+        // 清空所有（重置页面）
+        function clearAll() {
+            location.reload();
+        }
+        
+        // 初始化
+        function init() {
+            // 初始化所有球
+            initSsqRedBalls();
+            initSsqBlueBalls();
+            initDltFrontBalls();
+            initDltBackBalls();
+            
+            // 绑定事件
+            // 选项卡切换
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    switchGameType(btn.dataset.type);
+                });
+            });
+            
+            // 控制按钮
+            randomBtn.addEventListener('click', randomSelect);
+            clearBtn.addEventListener('click', clearSelection);
+            clearAllBtn.addEventListener('click', clearAll);
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

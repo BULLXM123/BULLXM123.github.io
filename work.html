@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>查货</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 0 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        .module {
+            flex: 1;
+            min-width: 400px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        #modelInput {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        #searchBtn {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #searchBtn:hover {
+            background-color: #45a049;
+        }
+        .history {
+            margin-top: 20px;
+        }
+        .history h3 {
+            margin-bottom: 10px;
+            color: #666;
+        }
+        .history-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .history-item {
+            padding: 8px;
+            background-color: #f9f9f9;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .history-item:hover {
+            background-color: #e9e9e9;
+        }
+        
+        /* 汇率转换样式 */
+        .exchange-rate {
+            margin-bottom: 30px;
+            padding: 0 20px 20px;
+            /* background-color: #f0f8ff; */
+            border-radius: 8px;
+        }
+        
+        .exchange-rate h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        
+        .rate-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+        
+        .input-group {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .input-group input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            font-size: 16px;
+            outline: none;
+            min-width: 0;
+        }
+        
+        .input-group .currency {
+            padding: 10px;
+            background-color: #f5f5f5;
+            color: #666;
+            font-weight: bold;
+            border-left: 1px solid #ddd;
+            white-space: nowrap;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .switch-btn {
+            padding: 10px 15px;
+            font-size: 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .switch-btn:hover {
+            background-color: #45a049;
+            transform: scale(1.1);
+        }
+        
+        .rate-info {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+        }
+        
+        #updateTime {
+            display: block;
+            margin-top: 5px;
+            font-size: 12px;
+            color: #999;
+        }
+        
+        /* .search-section {
+            margin-top: 20px;
+        } */
+        
+        .search-section h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        
+        /* 网站选择器样式 */
+        .website-selector {
+            margin: 15px 0;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        
+        .website-selector h3 {
+            margin: 0 0 10px 0;
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 style="width: 100%; text-align: center;">查货</h1>
+
+         <!-- 查货模块 -->
+        <div class="module search-section">
+            <h2>元器件查货</h2>
+            <div class="search-box">
+                <input type="text" id="modelInput" placeholder="请输入型号，例如：TBD62308AFAG,EL">
+                <button id="searchBtn">搜索</button>
+            </div>
+            
+            <!-- 网站选择 -->
+            <div class="website-selector">
+                <h3>选择查询网站</h3>
+                <div class="checkbox-group">
+                    <label>
+                        <input type="checkbox" id="icNet" checked> IC网
+                    </label>
+                    <label>
+                        <input type="checkbox" id="bomAi"> 正能量
+                    </label>
+                    <label>
+                        <input type="checkbox" id="lcsrc"> 立创
+                    </label>
+                    <label>
+                        <input type="checkbox" id="shenghetang"> 圣禾堂
+                    </label>
+                </div>
+            </div>
+            
+            <div class="history">
+                <h3>搜索历史</h3>
+                <ul id="historyList" class="history-list"></ul>
+            </div>
+        </div>
+        
+        <!-- 汇率转换模块 -->
+        <div class="module exchange-rate">
+            <h2>美元人民币汇率转换</h2>
+            <div class="rate-container">
+                <div class="input-group">
+                    <input type="number" id="usdInput" placeholder="美元" step="0.01">
+                    <span class="currency">USD</span>
+                </div>
+                <button id="switchBtn" class="switch-btn">⇄</button>
+                <div class="input-group">
+                    <input type="number" id="cnyInput" placeholder="人民币" step="0.01">
+                    <span class="currency">CNY</span>
+                </div>
+            </div>
+            <div class="rate-info">
+                <span id="rateDisplay">实时汇率：加载中...</span>
+                <span id="updateTime"></span>
+            </div>
+        </div>
+        
+       
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const modelInput = document.getElementById('modelInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const historyList = document.getElementById('historyList');
+        
+        // 网站选择复选框
+        const bomAi = document.getElementById('bomAi');
+        const icNet = document.getElementById('icNet');
+        const lcsrc = document.getElementById('lcsrc');
+        const shenghetang = document.getElementById('shenghetang');
+        
+        // 汇率转换DOM元素
+        const usdInput = document.getElementById('usdInput');
+        const cnyInput = document.getElementById('cnyInput');
+        const switchBtn = document.getElementById('switchBtn');
+        const rateDisplay = document.getElementById('rateDisplay');
+        const updateTime = document.getElementById('updateTime');
+        
+        // 汇率变量
+        let exchangeRate = 6.5; // 默认汇率，实际会从API获取
+        let isUsdToCny = true; // 默认美元转人民币
+        
+        // 获取实时汇率
+        async function getExchangeRate() {
+            try {
+                // 使用nowapi获取汇率数据，使用测试appkey
+                const response = await fetch('https://sapi.k780.com/?app=finance.rate&scur=USD&tcur=CNY&appkey=10003&sign=b59bc3ef6191eb9f747dd4e83c99f2a4&format=json');
+                const data = await response.json();
+                
+                if (data.success === '1') {
+                    exchangeRate = parseFloat(data.result.rate);
+                    rateDisplay.textContent = `实时汇率：1 USD = ${exchangeRate.toFixed(4)} CNY`;
+                    updateTime.textContent = `更新时间：${data.result.update}`;
+                } else {
+                    console.error('获取汇率失败：', data.msg);
+                    rateDisplay.textContent = '实时汇率：获取失败，使用默认汇率';
+                }
+            } catch (error) {
+                console.error('汇率API请求错误：', error);
+                rateDisplay.textContent = '实时汇率：网络错误，使用默认汇率';
+            }
+        }
+        
+        // 美元转人民币
+        function usdToCny(usd) {
+            return usd * exchangeRate;
+        }
+        
+        // 人民币转美元
+        function cnyToUsd(cny) {
+            return cny / exchangeRate;
+        }
+        
+        // 更新转换结果
+        function updateConversion(inputElement) {
+            const value = parseFloat(inputElement.value);
+            
+            if (isNaN(value)) {
+                // 如果输入为空或非数字，清空另一个输入框
+                if (inputElement === usdInput) {
+                    cnyInput.value = '';
+                } else {
+                    usdInput.value = '';
+                }
+                return;
+            }
+            
+            if (isUsdToCny) {
+                // 美元转人民币
+                if (inputElement === usdInput) {
+                    cnyInput.value = usdToCny(value).toFixed(2);
+                } else {
+                    usdInput.value = cnyToUsd(value).toFixed(2);
+                }
+            } else {
+                // 人民币转美元
+                if (inputElement === usdInput) {
+                    cnyInput.value = cnyToUsd(value).toFixed(2);
+                } else {
+                    usdInput.value = usdToCny(value).toFixed(2);
+                }
+            }
+        }
+        
+        // 切换汇率方向
+        function switchExchangeDirection() {
+            isUsdToCny = !isUsdToCny;
+            
+            // 交换输入框的值
+            const temp = usdInput.value;
+            usdInput.value = cnyInput.value;
+            cnyInput.value = temp;
+            
+            // 更新汇率显示
+            if (isUsdToCny) {
+                rateDisplay.textContent = `实时汇率：1 USD = ${exchangeRate.toFixed(4)} CNY`;
+            } else {
+                rateDisplay.textContent = `实时汇率：1 CNY = ${(1/exchangeRate).toFixed(4)} USD`;
+            }
+        }
+        
+        // 汇率转换事件监听
+        usdInput.addEventListener('input', () => updateConversion(usdInput));
+        cnyInput.addEventListener('input', () => updateConversion(cnyInput));
+        switchBtn.addEventListener('click', switchExchangeDirection);
+        
+        // 页面加载时获取汇率
+        getExchangeRate();
+
+        // 加载搜索历史
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+            historyList.innerHTML = '';
+            history.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'history-item';
+                li.textContent = item;
+                li.onclick = () => {
+                    modelInput.value = item;
+                    search(item);
+                };
+                historyList.appendChild(li);
+            });
+        }
+
+        // 保存搜索历史
+        function saveToHistory(model) {
+            let history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+            // 移除重复项
+            history = history.filter(item => item !== model);
+            // 添加到开头
+            history.unshift(model);
+            // 只保留最近10条
+            if (history.length > 10) {
+                history = history.slice(0, 10);
+            }
+            localStorage.setItem('searchHistory', JSON.stringify(history));
+            loadHistory();
+        }
+
+        // 搜索功能
+        function search(model) {
+            if (!model) {
+                alert('请输入型号');
+                return;
+            }
+            
+            // 编码型号
+            const encodedModel = encodeURIComponent(model);
+            
+            // 根据选中的网站打开相应链接
+            if (bomAi.checked) {
+                window.open(`https://www.bom.ai/components-storage/${encodedModel}.html`, '_blank');
+            }
+            if (icNet.checked) {
+                window.open(`https://www.ic.net.cn/search/${encodedModel}.html`, '_blank');
+            }
+            if (lcsrc.checked) {
+                window.open(`https://so.szlcsc.com/global.html?k=${encodedModel}`, '_blank');
+            }
+            if (shenghetang.checked) {
+                window.open(`https://www.bomman.com/global-search?searchWord=${encodedModel}`, '_blank');
+            }
+            
+            // 保存到搜索历史
+            saveToHistory(model);
+        }
+
+        // 点击搜索按钮
+        searchBtn.addEventListener('click', () => {
+            const model = modelInput.value.trim();
+            search(model);
+        });
+
+        // 回车键搜索
+        modelInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const model = modelInput.value.trim();
+                search(model);
+            }
+        });
+
+        // 初始化
+        loadHistory();
+    </script>
+</body>
+</html>
